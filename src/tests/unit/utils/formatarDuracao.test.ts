@@ -21,7 +21,7 @@ describe("formatarDuracao", () => {
     expect(formatarDuracao("abc")).toBe("abc");
   });
 
-    describe("formato TimeSpan do .NET (o que a API devolve)", () => {
+  describe("formato TimeSpan do .NET (o que a API devolve)", () => {
     it("formata minutos e segundos", () => {
       expect(formatarDuracao("00:04:13")).toBe("4:13");
     });
