@@ -6,7 +6,7 @@
 }
 
 h1 { color: #d63384; text-align: center; margin-bottom: 0; font-size: 2.6rem; }
-.subtitulo { text-align: center; color: #c2185b; margin-top: 4px; }
+.subtitle { text-align: center; color: #c2185b; margin-top: 4px; }
 
 .form { display: flex; gap: 8px; margin: 24px 0 8px; }
 .form input {
@@ -33,9 +33,9 @@ button {
 button:hover { background: #e0559f; transform: scale(1.04); }
 button:disabled { background: #ffc2e0; cursor: not-allowed; transform: none; }
 
-.erro { background: #ffe0e6; color: #b00045; padding: 10px 16px; border-radius: 12px; }
-.progresso { text-align: center; color: #c2185b; font-weight: 600; }
-.vazio { text-align: center; color: #c2185b; margin-top: 40px; }
+.error { background: #ffe0e6; color: #b00045; padding: 10px 16px; border-radius: 12px; }
+.progress { text-align: center; color: #c2185b; font-weight: 600; }
+.empty { text-align: center; color: #c2185b; margin-top: 40px; }
 
 .player {
   background: #ffe4f1;
@@ -48,7 +48,7 @@ button:disabled { background: #ffc2e0; cursor: not-allowed; transform: none; }
 .player iframe { border-radius: 14px; }
 .player button { margin-top: 8px; }
 
-.lista { list-style: none; padding: 0; display: flex; flex-direction: column; gap: 14px; }
+.list { list-style: none; padding: 0; display: flex; flex-direction: column; gap: 14px; }
 
 .card {
   display: flex;
@@ -62,7 +62,7 @@ button:disabled { background: #ffc2e0; cursor: not-allowed; transform: none; }
 .card img { width: 160px; border-radius: 14px; cursor: pointer; object-fit: cover; }
 .card h3 { margin: 0 0 4px; color: #5a1a3a; font-size: 1rem; }
 .card p { margin: 0 0 10px; color: #a0446f; font-size: 0.9rem; }
-.botoes { display: flex; gap: 8px; flex-wrap: wrap; }
+.actions { display: flex; gap: 8px; flex-wrap: wrap; }
 
-.assistido { opacity: 0.6; }
-.assistido h3 { text-decoration: line-through; }
+.watched { opacity: 0.6; }
+.watched h3 { text-decoration: line-through; }

@@ -20,37 +20,37 @@ function criarVideo(sobrescrever: Partial<Video> = {}): Video {
 
 describe("VideoCard", () => {
   it("mostra título, canal e duração formatada", () => {
-    render(<VideoCard video={criarVideo()} onAssistir={vi.fn()} onAlternar={vi.fn()} />);
+    render(<VideoCard video={criarVideo()} onPlay={vi.fn()} onToggleWatched={vi.fn()} />);
 
     expect(screen.getByRole("heading", { name: "Aula de DDD" })).toBeInTheDocument();
     expect(screen.getByText("Canal de videoaula • 4:13")).toBeInTheDocument();
   });
 
   it("chama onAssistir com o youTubeId ao clicar em Assistir", () => {
-    const onAssistir = vi.fn();
-    render(<VideoCard video={criarVideo()} onAssistir={onAssistir} onAlternar={vi.fn()} />);
+    const onPlay = vi.fn();
+    render(<VideoCard video={criarVideo()} onPlay={onPlay} onToggleWatched={vi.fn()} />);
 
     fireEvent.click(screen.getByRole("button", { name: /assistir/i }));
 
-    expect(onAssistir).toHaveBeenCalledWith("dQw4w9WgXcQ");
+    expect(onPlay).toHaveBeenCalledWith("dQw4w9WgXcQ");
   });
 
   it("chama onAlternar com o vídeo ao clicar em Já assisti", () => {
-    const onAlternar = vi.fn();
+    const onToggleWatched = vi.fn();
     const video = criarVideo();
-    render(<VideoCard video={video} onAssistir={vi.fn()} onAlternar={onAlternar} />);
+    render(<VideoCard video={video} onPlay={vi.fn()} onToggleWatched={onToggleWatched} />);
 
     fireEvent.click(screen.getByRole("button", { name: /já assisti/i }));
 
-    expect(onAlternar).toHaveBeenCalledWith(video);
+    expect(onToggleWatched).toHaveBeenCalledWith(video);
   });
 
   it("mostra Desmarcar e a classe assistido quando o vídeo já foi visto", () => {
     render(
-      <VideoCard video={criarVideo({ watched: true })} onAssistir={vi.fn()} onAlternar={vi.fn()} />
+      <VideoCard video={criarVideo({ watched: true })} onPlay={vi.fn()} onToggleWatched={vi.fn()} />
     );
 
     expect(screen.getByRole("button", { name: /desmarcar/i })).toBeInTheDocument();
-    expect(screen.getByRole("listitem")).toHaveClass("card", "assistido");
+    expect(screen.getByRole("listitem")).toHaveClass("card", "watched");
   });
 });
