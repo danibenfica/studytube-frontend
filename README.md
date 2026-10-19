@@ -1,669 +1,366 @@
-# 🎓 StudyTube API
+# 🎀 StudyTube Frontend
 
-> ✨ Seu cantinho de estudos, organizado vídeo por vídeo.
+> 📚 **Sua biblioteca pessoal de videoaulas do YouTube.** Organize seus estudos, acompanhe seu progresso e assista aos vídeos em um só lugar!
 
-A **StudyTube API** é uma API REST desenvolvida em .NET para organizar uma lista pessoal de videoaulas do YouTube. Com ela, o estudante pode adicionar vídeos, consultar seus metadados e acompanhar quais conteúdos já foram estudados.
+O **StudyTube Frontend** é uma aplicação web que permite montar e gerenciar uma lista pessoal de videoaulas do YouTube. Basta colar o link de um vídeo para que a API .NET consulte suas informações e a interface apresente o título, o canal, a duração e a miniatura.
 
-O projeto utiliza **Domain-Driven Design (DDD)** para separar as regras de negócio da infraestrutura, além de SQLite para persistência e integração com a YouTube Data API v3.
+Você também pode assistir aos vídeos diretamente na página e marcar aqueles que já foram estudados. ✨
 
-🌷 **Tecnologias principais:** C# · .NET 10 · ASP.NET Core · Entity Framework Core · SQLite · NUnit · YouTube Data API v3
+Este repositório contém **somente o frontend**. A aplicação se comunica com a API por requisições HTTP e respostas JSON, sem acessar diretamente as entidades de domínio, o Entity Framework ou o banco de dados.
 
----
-
-## 🌸 Índice
-
-- [💡 Sobre o projeto](#-sobre-o-projeto)
-- [🌐 Endpoints](#-endpoints)
-- [📦 Formato do VideoDto](#-formato-do-videodto)
-- [🧰 Versões e dependências](#-versões-e-dependências)
-- [🔑 Configuração da chave do YouTube](#-configuração-da-chave-do-youtube)
-- [🚀 Como executar](#-como-executar-a-api)
-- [🧪 Testes](#-testes)
-- [📁 Estrutura da solution](#-estrutura-da-solution)
-- [🏗️ Decisões de arquitetura](#️-decisões-de-arquitetura)
-- [🗺️ Próximos passos](#️-próximos-passos)
+🔗 **Backend:** [`danibenfica/studytube-backend`](https://github.com/danibenfica/studytube-backend)
 
 ---
 
-## 💡 Sobre o projeto
+## 🌷 Funcionalidades
 
-A ideia é simples: o estudante envia o link de uma videoaula, a API consulta a **YouTube Data API v3** e salva as principais informações do conteúdo:
-
-- 📝 Título do vídeo
-- 📺 Nome do canal
-- 🖼️ Miniatura
-- ⏱️ Duração
-- 📅 Data de inclusão
-- ✅ Estado de conclusão dos estudos
-
-Depois, é possível listar os vídeos e marcar ou desmarcar cada um como assistido.
-
-O frontend web está disponível no repositório [studytube-frontend](https://github.com/danibenfica/studytube-frontend). Ele se comunica com a API por meio de requisições HTTP e respostas JSON.
-
-O material da atividade também prevê um aplicativo mobile em React Native, mas ele ainda não faz parte da solution atual.
-
-### ✨ Funcionalidades implementadas
-
-- [x] Adicionar videoaulas por URL.
-- [x] Consultar metadados do YouTube.
-- [x] Persistir vídeos no SQLite.
-- [x] Listar vídeos do mais recente para o mais antigo.
-- [x] Marcar vídeos como assistidos.
-- [x] Desmarcar vídeos como assistidos.
-- [x] Validar URLs e IDs do YouTube.
-- [x] Impedir o cadastro duplicado de um mesmo vídeo.
-- [x] Documentar a API com OpenAPI e Swagger em desenvolvimento.
-- [x] Testar as regras de negócio e a persistência.
-
-### 📍 Endereços locais
-
-| Recurso | Endereço |
-|---|---|
-| API | [http://localhost:5126](http://localhost:5126) |
-| Swagger UI | [http://localhost:5126/swagger](http://localhost:5126/swagger) |
-| Documento OpenAPI | [http://localhost:5126/openapi/v1.json](http://localhost:5126/openapi/v1.json) |
-
-> 💡 O Swagger e o documento OpenAPI são disponibilizados quando o ambiente está configurado como `Development`.
-
-A porta `5126` vem do perfil `http` definido em `StudyTube.Api/Properties/launchSettings.json`.
+- 🔗 **Cadastro de videoaulas:** adicione vídeos usando links do YouTube.
+- 🖼️ **Informações dos vídeos:** visualize título, canal, duração e miniatura.
+- ▶️ **Player integrado:** assista aos vídeos sem sair da aplicação.
+- ✅ **Acompanhamento dos estudos:** marque vídeos como assistidos ou desmarque-os.
+- 📊 **Progresso de estudos:** acompanhe o andamento da sua lista.
+- 🛡️ **Validação de links:** verifique links do YouTube antes de enviá-los à API.
+- ⚠️ **Tratamento de conexão:** receba um aviso quando a API não estiver acessível.
 
 ---
 
-## 🌐 Endpoints
+## 🧰 Tecnologias utilizadas
 
-A API utiliza o controlador `VideosController`, com a rota-base `/api/videos`.
-
-O ASP.NET Core não diferencia maiúsculas de minúsculas nesse caminho. Portanto, `/api/Videos` e `/api/videos` funcionam. Nos exemplos, usamos letras minúsculas para manter a consistência com o frontend e o arquivo `StudyTube.Api.http`.
-
-As propriedades JSON são retornadas em `camelCase`.
-
-🔒 **Autenticação:** não implementada atualmente.
-
-### 📚 Consultar todos os vídeos
-
-`GET /api/videos`
-
-Retorna a lista de vídeos cadastrados, ordenada pela data de inclusão (`AddedAt`) em ordem decrescente.
-
-**Resposta de sucesso:**
-
-- `200 OK`: retorna um array de `VideoDto`.
-- Lista vazia: retorna `[]`.
-
-### ➕ Adicionar uma videoaula
-
-`POST /api/videos`
-
-Recebe a URL, consulta os metadados no YouTube e salva o vídeo.
-
-**Corpo da requisição:**
-
-```json
-{
-  "url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
-}
-```
-
-#### 🔗 Formatos de URL aceitos
-
-Desde que o ID tenha exatamente 11 caracteres válidos, a API aceita os seguintes formatos:
-
-- `https://youtu.be/{id}`
-- `https://youtube.com/watch?v={id}`
-- `https://www.youtube.com/watch?v={id}`
-- `https://m.youtube.com/watch?v={id}`
-- `https://www.youtube.com/embed/{id}`
-- `https://www.youtube.com/shorts/{id}`
-
-O ID pode conter letras maiúsculas ou minúsculas, números, `_` e `-`.
-
-#### 📬 Respostas possíveis
-
-| Código HTTP | Significado |
+| Tecnologia | Finalidade |
 |---|---|
-| `201 Created` | Vídeo cadastrado com sucesso. Retorna o `VideoDto` e o cabeçalho `Location`. |
-| `400 Bad Request` | URL inválida, ID inválido, vídeo duplicado ou vídeo não encontrado. |
-| `500 Internal Server Error` | Falha inesperada, como erro de rede ou problema na integração com o Google. |
+| ⚛️ React | Construção da interface |
+| 🟦 TypeScript | Tipagem estática |
+| ⚡ Vite | Servidor de desenvolvimento e build |
+| 🎬 react-youtube | Integração com o player do YouTube |
+| 🧪 Vitest | Testes unitários |
+| 🔍 ESLint | Análise estática do código |
+| 🪝 Husky | Execução de testes antes dos commits |
+| 🌐 Fetch API | Comunicação HTTP com o backend |
 
-**Exemplo de erro de domínio:**
+### 📦 Versões das dependências
 
-```json
-{
-  "error": "Este vídeo já está na sua lista."
-}
-```
+O Node.js não está fixado no `package.json`. O projeto requer Node.js 22.13 ou superior, sendo recomendada a versão 24 LTS.
 
-Mensagens previstas:
+A tabela abaixo diferencia as versões declaradas no `package.json` das versões resolvidas no `package-lock.json`.
 
-- `URL inválida.`
-- `Não é uma URL de vídeo do YouTube.`
-- `ID do YouTube inválido.`
-- `Este vídeo já está na sua lista.`
-- `Vídeo não encontrado no YouTube.`
-
-**E quando o campo `url` não é enviado?**
-
-O ASP.NET Core retorna `400 Bad Request` usando o formato Problem Details:
-
-```json
-{
-  "title": "One or more validation errors occurred.",
-  "status": 400,
-  "errors": {
-    "Url": ["The Url field is required."]
-  }
-}
-```
-
-**⚠️ Atenção:** o cabeçalho `Location` aponta para `/api/videos/{id}`, mas a API ainda não implementa um endpoint `GET` para consultar um vídeo individual por ID.
-
-Erros na comunicação com o Google, ausência de chave, credenciais recusadas ou limites de utilização podem resultar em `500 Internal Server Error`. Esse erro não segue necessariamente o formato `{ "error": "..." }`.
-
-### ✅ Marcar como assistido
-
-`PATCH /api/videos/{id}/watched`
-
-Atualiza o estado do vídeo para assistido.
-
-| Código HTTP | Significado |
-|---|---|
-| `200 OK` | Retorna o `VideoDto` atualizado. |
-| `400 Bad Request` | O vídeo já está marcado como assistido. |
-| `404 Not Found` | O ID não existe ou não corresponde ao formato GUID exigido pela rota. |
-
-**Exemplo de erro:**
-
-```json
-{
-  "error": "Este vídeo já foi marcado como assistido."
-}
-```
-
-### ↩️ Desmarcar como assistido
-
-`DELETE /api/videos/{id}/watched`
-
-Retorna o vídeo ao estado não assistido.
-
-- `200 OK`: retorna o `VideoDto` atualizado.
-- `404 Not Found`: ocorre quando o ID não existe ou não está no formato GUID esperado.
-
-Essa operação também pode ser executada quando o vídeo já estiver desmarcado.
+| Pacote | Declarada | Instalada |
+|---|---:|---:|
+| React | `^19.2.8` | `19.3.1` |
+| React DOM | `^19.2.8` | `19.3.1` |
+| Vite | `^8.3.0` | `8.3.4` |
+| TypeScript | `~6.0.2` | `6.0.3` |
+| react-youtube | `^10.1.0` | `10.1.0` |
+| Vitest | `^5.0.5` | `5.0.5` |
+| ESLint | `^10.10.0` | `10.13.0` |
+| typescript-eslint | `^8.69.0` | `8.71.2` |
+| @vitejs/plugin-react | `^6.1.1` | `6.1.2` |
+| Husky | `^9.1.7` | `9.1.7` |
 
 ---
 
-## 📦 Formato do VideoDto
+## 🚀 Como executar o projeto
 
-O `VideoDto` é o objeto utilizado para transportar os dados dos vídeos entre a API e os clientes.
+### 1. Pré-requisitos
 
-**Exemplo de resposta:**
+Antes de começar, você precisa ter:
 
-```json
-{
-  "id": "ff28bf3c-082d-43e1-9d64-25d656ae0b9d",
-  "youTubeId": "dQw4w9WgXcQ",
-  "title": "Aula de DDD",
-  "channelTitle": "Canal",
-  "thumbnailUrl": "https://img",
-  "duration": "00:10:00",
-  "watched": true,
-  "addedAt": "2026-10-19T13:46:41.8172481",
-  "watchedAt": "2026-10-19T13:46:41.8173555"
-}
+- [Node.js 24 LTS](https://nodejs.org/) recomendado, ou Node.js 22.13 ou superior.
+- npm, instalado junto com o Node.js.
+- A API StudyTube em execução, caso queira cadastrar e consultar vídeos de verdade.
+
+Para verificar se o Node.js e o npm estão instalados, abra o terminal e execute:
+
+```bash
+node --version
+npm --version
 ```
 
-### 🧾 Campos disponíveis
+### 2. Instale as dependências
 
-| Campo | Formato e significado |
-|---|---|
-| `id` | UUID em formato de string. |
-| `youTubeId` | Identificador do vídeo no YouTube, com 11 caracteres. |
-| `title` | Título do vídeo. |
-| `channelTitle` | Nome do canal. |
-| `thumbnailUrl` | URL da miniatura. |
-| `duration` | Duração serializada no formato constante `c` de `TimeSpan`. |
-| `watched` | Booleano que indica se o vídeo foi marcado como assistido. |
-| `addedAt` | Data e hora de inclusão. |
-| `watchedAt` | Data e hora da conclusão ou `null` quando não assistido. |
+Abra o terminal na pasta raiz do repositório e execute:
 
-### ⏱️ Como funciona a duração?
-
-A YouTube Data API retorna a duração no padrão ISO 8601, por exemplo, `PT4M13S`.
-
-O `YouTubeApiClient` converte esse valor usando `XmlConvert.ToTimeSpan`, e a API publica o `TimeSpan` resultante.
-
-| Duração | Valor no JSON |
-|---|---|
-| 10 minutos | `"00:10:00"` |
-| 45 segundos | `"00:00:45"` |
-| 1 hora, 2 minutos e 3 segundos | `"01:02:03"` |
-| 1 dia, 2 horas, 3 minutos e 4 segundos | `"1.02:03:04"` |
-| 10 minutos e 5,25 segundos | `"00:10:05.2500000"` |
-
-Quando há fração de segundo, o valor pode conter até sete dígitos decimais.
-
-O padrão OpenAPI é:
-
-```regex
-^-?(\d+\.)?\d{2}:\d{2}:\d{2}(\.\d{1,7})?$
+```bash
+npm ci
 ```
 
-### 🕰️ Como funcionam as datas?
+Esse comando instala as dependências usando as versões registradas no `package-lock.json` e prepara o Husky para os hooks do Git.
 
-Os campos `addedAt` e `watchedAt` são gravados com `DateTime.UtcNow`.
+### 3. Inicie a aplicação
 
-No SQLite, o Entity Framework Core pode recuperar esses valores com `DateTimeKind.Unspecified`. Por isso, uma resposta de `GET` pode conter uma data sem o sufixo `Z`.
+Execute:
 
-Já as respostas de `POST` e `PATCH` podem incluir `Z`, pois o objeto ainda pode estar em memória com `DateTimeKind.Utc`.
+```bash
+npm run dev
+```
 
-Essa diferença de serialização é importante ao integrar a API com outros clientes.
+Por padrão, o Vite disponibiliza a aplicação em:
+
+🌐 http://localhost:5173
+
+Abra esse endereço no navegador para acessar o StudyTube.
+
+### 4. Outros comandos úteis
+
+| Comando | O que faz |
+|---|---|
+| `npm run dev` | Inicia o servidor de desenvolvimento |
+| `npm test` | Executa os testes unitários uma vez |
+| `npm run lint` | Verifica o código com ESLint |
+| `npm run build` | Verifica os tipos e gera o build de produção |
+| `npm run preview` | Disponibiliza localmente o build gerado em `dist/` |
+
+💡 **Dica:** execute `npm test`, `npm run lint` e `npm run build` antes de considerar uma alteração pronta.
 
 ---
 
-## 🧰 Versões e dependências
+## 🔌 Configuração da API
 
-O projeto utiliza .NET 10 e não possui um arquivo `global.json`.
-
-| Componente | Versão |
-|---|---|
-| .NET SDK utilizado | `10.0.402` |
-| `Microsoft.AspNetCore.OpenApi` | `10.0.11` |
-| `Microsoft.EntityFrameworkCore.Design` | `10.0.13` |
-| `Swashbuckle.AspNetCore.SwaggerUI` | `10.3.0` |
-| `Microsoft.EntityFrameworkCore.Sqlite` | `10.0.13` |
-| `NUnit` | `4.3.2` |
-| `NUnit3TestAdapter` | `5.0.0` |
-| `NUnit.Analyzers` | `4.7.0` |
-| `Microsoft.NET.Test.Sdk` | `17.14.0` |
-| `coverlet.collector` | `6.0.4` |
-| `dotnet-ef` | `10.0.13` |
-
-Os projetos `StudyTube.Domain` e `StudyTube.Services` não possuem dependências NuGet diretas.
-
-A ferramenta `dotnet-ef` é utilizada para gerenciar migrations do Entity Framework Core.
-
----
-
-## 🔑 Configuração da chave do YouTube
-
-Para cadastrar novos vídeos, é necessário configurar uma chave da **YouTube Data API v3**.
-
-Sem ela, ainda é possível listar os vídeos já salvos e alterar seu estado de conclusão, mas o cadastro de novos conteúdos depende da integração externa.
-
-### 🌱 Criando uma chave de API
-
-1. Acesse o [Google Cloud Console](https://console.cloud.google.com/).
-2. Crie um projeto ou selecione um existente.
-3. Abra **APIs e serviços → Biblioteca**.
-4. Ative a **YouTube Data API v3**.
-5. Entre em **APIs e serviços → Credenciais**.
-6. Crie uma chave de API.
-7. Restrinja a chave para a YouTube Data API v3, conforme as opções disponíveis.
-
-### 🔐 Salvando a chave com User Secrets
-
-O projeto `StudyTube.Api` já possui um `UserSecretsId` configurado:
+O frontend utiliza `fetch` para se comunicar com a API StudyTube. O cliente HTTP está centralizado em:
 
 ```text
-56a112e3-4717-4060-86ec-c0b6028fb0aa
+src/api/videosApi.ts
 ```
 
-Na raiz do repositório, execute:
+### ⚙️ URL padrão
+
+Por padrão, as requisições são enviadas para:
+
+```text
+http://localhost:5126/api/videos
+```
+
+Esse endereço corresponde ao perfil HTTP configurado no backend.
+
+### 📝 Configurando outra URL
+
+Se a API estiver hospedada em outro endereço, crie um arquivo `.env.local` a partir do exemplo disponibilizado no repositório.
+
+No Windows, macOS ou Linux, execute na raiz do frontend:
 
 ```bash
-dotnet user-secrets set "YouTube:ApiKey" "SUA_CHAVE" --project StudyTube.Api
+node -e "require('fs').copyFileSync('.env.example', '.env.local')"
 ```
 
-Substitua `SUA_CHAVE` pela chave criada no Google Cloud Console.
+Depois, abra o arquivo `.env.local` e configure:
 
-> 🔒 Nunca coloque a chave real no README, no frontend, no `appsettings.json` versionado ou em commits públicos.
+```dotenv
+VITE_API_URL=http://localhost:5126/api/videos
+```
 
-Os User Secrets são carregados no ambiente `Development`, definido pelo perfil `http`.
+Substitua a URL pelo endereço correto da API, se necessário.
+
+**Importante:**
+
+- As variáveis de ambiente expostas ao frontend pelo Vite precisam começar com `VITE_`.
+- O arquivo `.env.local` é ignorado pelo `.gitignore`, pois corresponde ao padrão `*.local`.
+- Reinicie o servidor com `npm run dev` após modificar as variáveis.
+- Se `VITE_API_URL` não estiver definida, o frontend utilizará a URL padrão.
+
+🔒 Não coloque chaves secretas ou credenciais privadas do backend nas variáveis `VITE_*`. Esses valores podem ficar visíveis no código entregue ao navegador.
 
 ---
 
-## 🚀 Como executar a API
+## 🖥️ Executando junto com o backend
 
-Vamos colocar esse foguete para decolar! 🚀
+Para utilizar as funcionalidades que dependem da API, o backend também precisa estar em execução.
 
-### 📋 Pré-requisitos
-
-Antes de começar, verifique se você possui:
-
-- [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0)
-- [Git](https://git-scm.com/)
-- Uma chave da YouTube Data API v3
-- Um terminal e um editor de código, como o JetBrains Rider
-
-### 1. 📥 Restaurar as dependências
-
-Execute na raiz do repositório, onde está o arquivo `StudyTube.slnx`:
-
-```bash
-dotnet restore StudyTube.slnx
-```
-
-Esse comando baixa as dependências necessárias para os projetos.
-
-### 2. 🏗️ Compilar a solution
-
-```bash
-dotnet build StudyTube.slnx
-```
-
-A compilação verifica se os projetos conseguem ser construídos corretamente.
-
-### 3. 🔑 Configurar a chave do YouTube
-
-```bash
-dotnet user-secrets set "YouTube:ApiKey" "SUA_CHAVE" --project StudyTube.Api
-```
-
-### 4. 🧩 Instalar o dotnet-ef
-
-```bash
-dotnet tool install --global dotnet-ef --version 10.0.13
-```
-
-Se a ferramenta já estiver instalada, atualize-a:
-
-```bash
-dotnet tool update --global dotnet-ef --version 10.0.13
-```
-
-### 5. 🗄️ Aplicar as migrations
-
-```bash
-dotnet ef database update --project StudyTube.Data --startup-project StudyTube.Api
-```
-
-Esse comando aplica a migration `InitialCreate` e cria o schema do banco.
-
-**Observação:** essa etapa pode ser omitida na execução normal, pois `Program.cs` já chama `Database.Migrate()` durante a inicialização.
-
-O banco utiliza a connection string:
-
-```text
-Data Source=studytube.db
-```
-
-Na configuração atual, o arquivo fica em `StudyTube.Api/studytube.db`. Arquivos `*.db` estão no `.gitignore`.
-
-### 6. ▶️ Iniciar a API
+Em outro terminal, abra o repositório `studytube-backend` e execute:
 
 ```bash
 dotnet run --project StudyTube.Api --launch-profile http
 ```
 
-Prontinho! A API estará disponível em:
+Esse perfil inicia a API em:
 
-- 🌐 API: [http://localhost:5126](http://localhost:5126)
-- 📘 Swagger: [http://localhost:5126/swagger](http://localhost:5126/swagger)
-- 📄 OpenAPI: [http://localhost:5126/openapi/v1.json](http://localhost:5126/openapi/v1.json)
+🌐 http://localhost:5126
 
-### 🔒 Executar com HTTPS
+Mantenha o backend e o frontend rodando em terminais separados.
 
-Também existe um perfil `https`, configurado para utilizar `https://localhost:7271` e `http://localhost:5126`.
+### 📡 Rotas utilizadas
 
-```bash
-dotnet run --project StudyTube.Api --launch-profile https
+O frontend utiliza as seguintes rotas HTTP:
+
+| Método | Rota | Finalidade |
+|---|---|---|
+| `GET` | `/api/videos` | Lista os vídeos salvos |
+| `POST` | `/api/videos` | Adiciona um vídeo a partir de uma URL do YouTube |
+| `PATCH` | `/api/videos/{id}/watched` | Marca um vídeo como assistido |
+| `DELETE` | `/api/videos/{id}/watched` | Desmarca um vídeo como assistido |
+
+Para cadastrar um vídeo, o corpo da requisição `POST` contém a URL:
+
+```json
+{
+  "url": "https://www.youtube.com/watch?v=VIDEO_ID"
+}
 ```
 
-Para criar o certificado de desenvolvimento:
+A API é responsável por consultar os dados do vídeo e persistir as informações.
 
-```bash
-dotnet dev-certs https
-```
+### 🔑 Chave da YouTube Data API v3
 
-Para confiar no certificado:
+Para cadastrar vídeos com sucesso, o backend precisa de uma chave da **YouTube Data API v3**, configurada em `YouTube:ApiKey`, por meio de User Secrets ou de `appsettings`.
 
-**Windows e macOS**
+Essa chave pertence ao backend e não deve ser colocada no frontend.
 
-```bash
-dotnet dev-certs https --trust
-```
+Se a API estiver indisponível, a interface exibirá um aviso informando que não foi possível estabelecer a conexão.
 
-**Linux**
+### ⏱️ Formato da duração
 
-O processo de confiança depende da distribuição e do navegador. Durante o desenvolvimento, o perfil HTTP é uma alternativa mais simples.
+O backend retorna o campo `duration` como `TimeSpan` do .NET, usando o formato constante.
 
-### 🛠️ Se o comando dotnet-ef não for encontrado
+Exemplos:
 
-Verifique se o diretório das ferramentas globais está no `PATH`.
-
-| Sistema | Diretório |
+| Valor recebido | Valor exibido |
 |---|---|
-| Windows | `%USERPROFILE%\.dotnet\tools` |
-| macOS/Linux | `$HOME/.dotnet/tools` |
+| `00:04:13` | `4:13` |
+| `01:02:03` | `1:02:03` |
+| `1.02:03:04` | `1:02:03:04` |
+| `PT4M13S` | `4:13` |
 
-### 🗂️ Onde ficam os User Secrets?
-
-| Sistema | Localização |
-|---|---|
-| Windows | `%APPDATA%\Microsoft\UserSecrets\56a112e3-4717-4060-86ec-c0b6028fb0aa\secrets.json` |
-| macOS/Linux | `~/.microsoft/usersecrets/56a112e3-4717-4060-86ec-c0b6028fb0aa/secrets.json` |
-
-Esses arquivos são gerenciados pelo .NET e não devem ser adicionados ao repositório.
+Durações no formato ISO 8601, como `PT4M13S`, também são aceitas.
 
 ---
 
-## 🧪 Testes
+## 🗂️ Estrutura do projeto
 
-O projeto utiliza **NUnit** para verificar o comportamento do backend.
-
-### ▶️ Executar todos os testes
-
-Na raiz da solution:
-
-```bash
-dotnet test StudyTube.slnx
-```
-
-### 🧩 Executar somente os testes unitários
-
-```bash
-dotnet test StudyTube.slnx --filter "FullyQualifiedName!~StudyTube.Tests.Integration"
-```
-
-### 🗄️ Executar somente os testes de integração
-
-```bash
-dotnet test StudyTube.slnx --filter "FullyQualifiedName~StudyTube.Tests.Integration"
-```
-
-### 📊 Cobertura atual
-
-| Categoria | Quantidade |
-|---|---:|
-| Testes unitários | 19 |
-| Testes de integração | 4 |
-| Total informado | 23 |
-
-Os testes unitários cobrem regras do domínio e comportamentos do `VideoService`. Os testes de integração verificam o repositório com SQLite em memória.
-
-Nos testes unitários do serviço, o repositório e o cliente do YouTube são substituídos por *fakes*. Isso permite verificar os comportamentos sem depender de uma conexão real com o Google.
-
-Nos testes de integração, uma conexão SQLite `:memory:` é criada e o schema é inicializado com `EnsureCreated`.
-
-> 🧪 **Limitação conhecida:** a API ainda não possui testes de ponta a ponta executando requisições HTTP reais contra a aplicação.
-
----
-
-## 📁 Estrutura da solution
-
-A solution está organizada em projetos com responsabilidades distintas.
+A organização do código separa a comunicação com a API, os componentes visuais, o estado da aplicação e as funções auxiliares.
 
 ```text
-StudyTube.slnx
-│
-├── StudyTube.Api/
-│   ├── Controllers/
-│   │   └── VideosController.cs
-│   ├── Program.cs
-│   ├── Properties/
-│   │   └── launchSettings.json
-│   ├── StudyTube.Api.http
-│   ├── appsettings.json
-│   └── wwwroot/
-│       └── swagger-ui/
-│           └── custom.css
-│
-├── StudyTube.Domain/
-│   ├── Entities/
-│   │   └── Video.cs
-│   ├── ValueObjects/
-│   │   └── YouTubeVideoId.cs
-│   └── Exceptions/
-│       └── DomainException.cs
-│
-├── StudyTube.Services/
-│   ├── Videos/
-│   │   ├── VideoService.cs
-│   │   └── VideoDto.cs
-│   ├── Interfaces/
-│   │   ├── IVideoRepository.cs
-│   │   └── IYouTubeApiClient.cs
-│   └── YouTube/
-│       └── YouTubeVideoInfo.cs
-│
-├── StudyTube.Data/
-│   ├── StudyTubeDbContext.cs
-│   ├── Configurations/
-│   │   └── VideoConfiguration.cs
-│   ├── Repositories/
-│   │   └── VideoRepository.cs
-│   ├── ExternalServices/
-│   │   └── YouTube/
-│   └── Migrations/
-│
-└── StudyTube.Tests/
-    ├── Unit/
-    │   ├── Domain/
-    │   └── Services/
-    └── Integration/
-        └── Data/
+studytube-frontend/
+├── public/                  # Ícones e arquivos estáticos
+├── src/
+│   ├── api/
+│   │   └── videosApi.ts     # Comunicação HTTP com a API
+│   ├── components/          # Formulário, cards, player e progresso
+│   ├── hooks/
+│   │   └── useVideos.ts     # Estado da lista e chamadas à API
+│   ├── tests/
+│   │   └── unit/            # Testes unitários com Vitest
+│   ├── types/
+│   │   └── Video.ts         # Contrato JSON do vídeo
+│   ├── utils/               # Formatação de duração e validação
+│   ├── App.tsx               # Componente principal
+│   └── main.tsx              # Ponto de entrada da aplicação
+├── .env.example             # Exemplo de configuração
+├── .husky/
+│   └── pre-commit           # Hook executado antes dos commits
+├── index.html
+├── package.json
+└── vite.config.ts
 ```
 
-### 📝 Componentes previstos no material da atividade
+### 🧩 Responsabilidades principais
 
-Os seguintes projetos e tipos ainda não fazem parte da solution atual:
-
-- `StudyTube.Publisher`
-- `StudyTube.DocumentGenerator`
-- `Playlist`
-- `UserStudyProgress`
-- `PlaylistsController`
-
-Eles podem ser considerados em futuras etapas, conforme os requisitos da atividade.
+- **`videosApi.ts`:** centraliza as chamadas HTTP feitas com `fetch`.
+- **`useVideos.ts`:** gerencia o estado da lista e a comunicação com a API.
+- **`components/`:** reúne os elementos visuais e interativos da aplicação.
+- **`types/Video.ts`:** define o contrato de dados utilizado pelo frontend.
+- **`utils/`:** contém funções auxiliares, incluindo validação de links e formatação de duração.
+- **`tests/unit/`:** reúne os testes automatizados.
 
 ---
 
-## 🏗️ Decisões de arquitetura
+## 🧪 Testes e qualidade do código
 
-O StudyTube foi organizado em quatro projetos principais, com responsabilidades separadas e dependências controladas.
+Os testes unitários são executados com Vitest e cobrem funcionalidades como:
 
-### 🧱 Camadas e dependências
+- Validação de links do YouTube.
+- Formatação da duração dos vídeos.
 
-| Projeto | Responsabilidade |
-|---|---|
-| `StudyTube.Domain` | Entidades, value objects e regras centrais de negócio. |
-| `StudyTube.Services` | Casos de uso, DTOs e interfaces das dependências necessárias. |
-| `StudyTube.Data` | Persistência, Entity Framework Core, SQLite e comunicação HTTP com o YouTube. |
-| `StudyTube.Api` | Endpoints, injeção de dependências, configuração HTTP e inicialização da aplicação. |
+Para executar os testes:
 
-A direção das dependências é:
+```bash
+npm test
+```
+
+Para verificar o código com ESLint:
+
+```bash
+npm run lint
+```
+
+Para verificar os tipos TypeScript e gerar o build de produção:
+
+```bash
+npm run build
+```
+
+O resultado do build é gerado no diretório `dist/`.
+
+### 🪝 Hook de pre-commit
+
+O projeto utiliza Husky para executar os testes antes de cada commit.
+
+O hook está localizado em:
 
 ```text
-StudyTube.Api
-   ├── StudyTube.Services
-   └── StudyTube.Data
-          ├── StudyTube.Services
-          └── StudyTube.Domain
-
-StudyTube.Services
-   └── StudyTube.Domain
-
-StudyTube.Domain
-   └── Sem dependências dos outros projetos
+.husky/pre-commit
 ```
 
-O domínio não depende de SQLite, Entity Framework Core, HTTP ou do formato original de resposta do YouTube.
+Ele executa:
 
-Isso facilita a manutenção e permite modificar a infraestrutura sem precisar reescrever as regras centrais da aplicação.
+```bash
+npm test
+```
 
-### 🔌 Integração com o YouTube
-
-A interface `IYouTubeApiClient` fica em `StudyTube.Services`, enquanto a implementação concreta `YouTubeApiClient` está em `StudyTube.Data/ExternalServices/YouTube`.
-
-Essa separação mantém a regra de negócio independente da forma como a consulta externa é realizada.
-
-O cliente concreto utiliza:
-
-- `HttpClient` para a comunicação HTTP.
-- A base `https://www.googleapis.com/youtube/v3/`.
-- O recurso `videos?part=snippet,contentDetails`.
-- A configuração `YouTube:ApiKey`.
-- A qualidade `high` para miniaturas, com fallback para `default`.
-
-A resposta original do Google é representada por um record privado chamado `YouTubeItem`. Ela não precisa se tornar uma entidade do domínio.
-
-### 🗄️ Persistência com SQLite
-
-O SQLite foi escolhido porque a aplicação mantém uma lista pessoal de videoaulas e não precisa de um servidor de banco de dados separado para o escopo atual.
-
-O Entity Framework Core gerencia o acesso aos dados, enquanto `VideoConfiguration` e a migration definem o mapeamento da tabela `Videos`.
-
-Essas configurações também estabelecem as restrições aplicáveis aos campos e o índice único de `YouTubeId`, reforçando a prevenção de duplicidades no banco.
-
-A conversão entre o texto armazenado no SQLite e o value object `YouTubeVideoId` também fica nessa configuração.
-
-### 🎓 Video ou VideoItem?
-
-O material da atividade utiliza o nome `VideoItem`, mas a implementação atual utiliza `Video`.
-
-A escolha foi manter `Video`, pois esse nome já está alinhado à tabela `Videos`, à rota `/api/videos` e ao DTO `VideoDto`.
-
-### 🌍 Configuração de CORS
-
-A política CORS se chama `Frontends` e permite qualquer origem, cabeçalho e método por meio de `AllowAnyOrigin`, `AllowAnyHeader` e `AllowAnyMethod`.
-
-Isso facilita o desenvolvimento com o React em outra origem e com outros clientes.
-
-**Nota de segurança:** essa política é permissiva. Antes de publicar a API em produção, recomenda-se restringir as origens autorizadas conforme os clientes efetivamente utilizados.
-
-### 🚀 Inicialização do banco
-
-O `Program.cs` executa `Database.Migrate()` durante a inicialização, antes de a API começar a atender requisições.
-
-Dessa forma, as migrations pendentes são aplicadas automaticamente. O comando `dotnet ef database update` também pode ser utilizado para atualizar o banco manualmente.
+Se os testes falharem, o commit será bloqueado pelo hook.
 
 ---
 
-## 🗺️ Próximos passos
+## 🏗️ Decisões técnicas
 
-O núcleo do StudyTube já permite organizar videoaulas e acompanhar sua conclusão. A partir dessa base, algumas evoluções possíveis são:
+### 1. Contrato de dados independente do domínio
 
-- [ ] Implementar playlists de estudo.
-- [ ] Criar um modelo de progresso estruturado.
-- [ ] Desenvolver o aplicativo mobile em React Native.
-- [ ] Adicionar testes de ponta a ponta para os endpoints HTTP.
-- [ ] Avaliar autenticação e separação de dados por usuário.
-- [ ] Revisar a política CORS antes da publicação.
-- [ ] Implementar relatórios ou certificados, se necessário.
-- [ ] Avaliar a necessidade de mensageria conforme a evolução dos requisitos.
+O tipo `Video` espelha o JSON retornado pela API, utilizando nomes de propriedades em `camelCase`.
 
-Essas funcionalidades são planejadas e não devem ser consideradas implementadas até que existam no código.
+O frontend não referencia diretamente entidades de domínio, DTOs de C# ou o banco SQLite.
+
+### 2. Comunicação HTTP centralizada
+
+As chamadas HTTP ficam isoladas em `videosApi.ts`.
+
+Os componentes não precisam montar as URLs das requisições individualmente, facilitando a manutenção e a organização do código.
+
+### 3. Player integrado
+
+O projeto utiliza `react-youtube` para incorporar o player de vídeo.
+
+O componente recebe o identificador do vídeo do YouTube (`youTubeId`), evitando a necessidade de passar a URL completa ao player.
+
+### 4. Validação antes do envio
+
+Os links são validados no navegador para verificar se pertencem aos domínios aceitos, como `youtube.com` e `youtu.be`, antes de realizar a requisição `POST`.
+
+Essa validação melhora a experiência de uso, mas não substitui as validações que devem ser realizadas pelo backend.
+
+### 5. Testes automatizados
+
+O Vitest é utilizado para testar funções importantes, como a formatação da duração e a validação dos links.
+
+### 6. Verificação antes dos commits
+
+O Husky executa os testes automaticamente antes de cada commit, ajudando a evitar que alterações com testes falhando sejam registradas no repositório.
+
+---
+
+## 🗺️ Resumo da arquitetura
+
+O fluxo principal da aplicação funciona assim:
+
+1. 📎 O estudante informa a URL de um vídeo.
+2. 🔍 O frontend valida o link.
+3. 🌐 O frontend envia a requisição para a API .NET.
+4. 🎬 A API consulta os dados do YouTube e salva as informações.
+5. 🖼️ O frontend apresenta os dados retornados.
+6. ✅ O estudante pode marcar ou desmarcar o vídeo como assistido.
+
+O frontend é responsável pela interface e pela comunicação HTTP. A API é responsável pelas regras de negócio, pela integração com o YouTube e pela persistência dos dados.
 
 ---
 
 ## 💖 Considerações finais
 
-O StudyTube combina uma API REST em .NET, regras de negócio isoladas com DDD, persistência em SQLite e integração com o YouTube para simplificar a organização de videoaulas.
+O StudyTube Frontend foi organizado para manter uma separação clara entre interface, comunicação HTTP, estado e funções auxiliares.
 
-A arquitetura foi pensada para manter o núcleo do sistema enxuto e testável, permitindo que novas funcionalidades sejam incorporadas gradualmente.
-
-**Pequenos passos, código organizado e estudos em andamento.** 🌷📚
-
----
-
-<sub>📌 Documentação técnica do StudyTube API. As versões, quantidades de testes, rotas e comportamentos descritos correspondem ao levantamento fornecido e devem ser atualizados quando a implementação mudar.</sub>
+Essa estrutura facilita a manutenção, a realização de testes e a evolução da aplicação, sem acoplar o cliente web aos detalhes internos do backend. 🌸📚
