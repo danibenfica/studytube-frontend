@@ -20,4 +20,26 @@ describe("formatarDuracao", () => {
   it("devolve o texto original quando não reconhece", () => {
     expect(formatarDuracao("abc")).toBe("abc");
   });
+
+    describe("formato TimeSpan do .NET (o que a API devolve)", () => {
+    it("formata minutos e segundos", () => {
+      expect(formatarDuracao("00:04:13")).toBe("4:13");
+    });
+
+    it("formata horas", () => {
+      expect(formatarDuracao("01:02:03")).toBe("1:02:03");
+    });
+
+    it("soma os dias nas horas", () => {
+      expect(formatarDuracao("1.02:03:04")).toBe("26:03:04");
+    });
+
+    it("ignora as frações de segundo", () => {
+      expect(formatarDuracao("00:04:13.5000000")).toBe("4:13");
+    });
+
+    it("formata duração zero", () => {
+      expect(formatarDuracao("00:00:00")).toBe("0:00");
+    });
+  });
 });
