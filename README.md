@@ -34,7 +34,7 @@ Este repositório contém **somente o frontend**. A aplicação se comunica com 
 | 🎬 react-youtube | Integração com o player do YouTube |
 | 🧪 Vitest | Testes unitários |
 | 🔍 ESLint | Análise estática do código |
-| 🪝 Husky | Execução de testes antes dos commits |
+| 🪝 Husky | Execução de lint e testes antes dos commits |
 | 🌐 Fetch API | Comunicação HTTP com o backend |
 
 ### 📦 Versões das dependências
@@ -290,7 +290,7 @@ O resultado do build é gerado no diretório `dist/`.
 
 ### 🪝 Hook de pre-commit
 
-O projeto utiliza Husky para executar os testes antes de cada commit.
+O projeto utiliza Husky para executar o lint e os testes antes de cada commit.
 
 O hook está localizado em:
 
@@ -301,10 +301,11 @@ O hook está localizado em:
 Ele executa:
 
 ```bash
+npm run lint
 npm test
 ```
 
-Se os testes falharem, o commit será bloqueado pelo hook.
+Se o lint ou os testes falharem, o commit será bloqueado pelo hook.
 
 ---
 
@@ -340,8 +341,7 @@ O Vitest é utilizado para testar funções importantes, como a formatação da 
 
 ### 6. Verificação antes dos commits
 
-O Husky executa os testes automaticamente antes de cada commit, ajudando a evitar que alterações com testes falhando sejam registradas no repositório.
-
+O Husky executa o lint e os testes automaticamente antes de cada commit, ajudando a evitar que código com erros de lint ou testes falhando seja registrado no repositório.
 ---
 
 ## 🗺️ Resumo da arquitetura
