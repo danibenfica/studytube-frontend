@@ -26,7 +26,7 @@ describe("VideoCard", () => {
     expect(screen.getByText("Canal de videoaula • 4:13")).toBeInTheDocument();
   });
 
-  it("chama onAssistir com o youTubeId ao clicar em Assistir", () => {
+  it("chama onPlay com o youTubeId ao clicar em Assistir", () => {
     const onPlay = vi.fn();
     render(<VideoCard video={criarVideo()} onPlay={onPlay} onToggleWatched={vi.fn()} />);
 
@@ -35,7 +35,7 @@ describe("VideoCard", () => {
     expect(onPlay).toHaveBeenCalledWith("dQw4w9WgXcQ");
   });
 
-  it("chama onAlternar com o vídeo ao clicar em Já assisti", () => {
+  it("chama onToggleWatched com o vídeo ao clicar em Já assisti", () => {
     const onToggleWatched = vi.fn();
     const video = criarVideo();
     render(<VideoCard video={video} onPlay={vi.fn()} onToggleWatched={onToggleWatched} />);
