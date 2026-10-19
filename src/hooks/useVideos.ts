@@ -1,42 +1,42 @@
 import { useEffect, useState } from "react";
 import type { Video } from "../types/Video";
-import { adicionarVideo, desmarcarAssistido, listarVideos, marcarAssistido } from "../api/videosApi";
+import { addVideo, getVideos, markAsUnwatched, markAsWatched } from "../api/videosApi";
 
 export function useVideos() {
   const [videos, setVideos] = useState<Video[]>([]);
-  const [erro, setErro] = useState("");
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    listarVideos()
+    getVideos()
       .then(setVideos)
-      .catch(() => setErro("Não consegui falar com a API. Ela está rodando? 🥺"));
+      .catch(() => setError("Não consegui falar com a API. Ela está rodando? 🥺"));
   }, []);
 
-  async function adicionar(url: string) {
-    setErro("");
+  async function add(url: string) {
+    setError("");
     try {
-      const novo = await adicionarVideo(url);
-      setVideos((atuais) => [novo, ...atuais]);
+      const created = await addVideo(url);
+      setVideos((current) => [created, ...current]);
       return true;
     } catch (err) {
-      setErro((err as Error).message);
+      setError((err as Error).message);
       return false;
     }
   }
 
-  async function alternarAssistido(video: Video) {
-    setErro("");
+  async function toggleWatched(video: Video) {
+    setError("");
     try {
-      const atualizado = video.watched
-        ? await desmarcarAssistido(video.id)
-        : await marcarAssistido(video.id);
-      setVideos((atuais) => atuais.map((v) => (v.id === atualizado.id ? atualizado : v)));
+      const updated = video.watched
+        ? await markAsUnwatched(video.id)
+        : await markAsWatched(video.id);
+      setVideos((current) => current.map((v) => (v.id === updated.id ? updated : v)));
     } catch (err) {
-      setErro((err as Error).message);
+      setError((err as Error).message);
     }
   }
 
-  const assistidos = videos.filter((v) => v.watched).length;
+  const watchedCount = videos.filter((v) => v.watched).length;
 
-  return { videos, erro, assistidos, adicionar, alternarAssistido };
+  return { videos, error, watchedCount, add, toggleWatched };
 }

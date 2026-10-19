@@ -1,27 +1,27 @@
 import { useState, type FormEvent } from "react";
-import { validarLinkYoutube } from "../utils/validarLinkYoutube";
+import { isValidYouTubeUrl } from "../utils/isValidYouTubeUrl";
 
 type Props = {
-  onAdicionar: (url: string) => Promise<boolean>;
+  onAdd: (url: string) => Promise<boolean>;
 };
 
-export function VideoForm({ onAdicionar }: Props) {
+export function VideoForm({ onAdd }: Props) {
   const [url, setUrl] = useState("");
 
-  async function enviar(e: FormEvent) {
+  async function handleSubmit(e: FormEvent) {
     e.preventDefault();
 
-    if (!validarLinkYoutube(url)) {
+    if (!isValidYouTubeUrl(url)) {
       alert("Esse link não é do YouTube 🥺");
       return;
     }
 
-    const deuCerto = await onAdicionar(url);
-    if (deuCerto) setUrl("");
+    const succeeded = await onAdd(url);
+    if (succeeded) setUrl("");
   }
 
   return (
-    <form onSubmit={enviar} className="form">
+    <form onSubmit={handleSubmit} className="form">
       <input
         value={url}
         onChange={(e) => setUrl(e.target.value)}

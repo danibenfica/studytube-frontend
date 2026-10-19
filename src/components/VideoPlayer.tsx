@@ -2,14 +2,14 @@ import YouTube from "react-youtube";
 
 type Props = {
   youTubeId: string;
-  onFechar: () => void;
+  onClose: () => void;
 };
 
-export function VideoPlayer({ youTubeId, onFechar }: Props) {
+export function VideoPlayer({ youTubeId, onClose }: Props) {
   return (
     <div className="player">
       <YouTube videoId={youTubeId} opts={{ width: "100%", playerVars: { autoplay: 1 } }} />
-      <button onClick={onFechar}>Fechar player ✖</button>
+      <button onClick={onClose}>Fechar player ✖</button>
     </div>
   );
 }

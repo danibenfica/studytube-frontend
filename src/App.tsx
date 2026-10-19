@@ -3,34 +3,36 @@ import { useVideos } from "./hooks/useVideos";
 import { VideoForm } from "./components/VideoForm";
 import { VideoCard } from "./components/VideoCard";
 import { VideoPlayer } from "./components/VideoPlayer";
-import { Progresso } from "./components/Progresso";
+import { WatchProgress } from "./components/WatchProgress";
 import "./App.css";
 
 export default function App() {
-  const { videos, erro, assistidos, adicionar, alternarAssistido } = useVideos();
-  const [tocando, setTocando] = useState<string | null>(null);
+  const { videos, error, watchedCount, add, toggleWatched } = useVideos();
+  const [playingVideoId, setPlayingVideoId] = useState<string | null>(null);
 
   return (
     <main className="app">
       <h1>🎀 StudyTube 🎀</h1>
-      <p className="subtitulo">sua listinha de estudos fofa</p>
+      <p className="subtitle">sua listinha de estudos fofa</p>
 
-      <VideoForm onAdicionar={adicionar} />
+      <VideoForm onAdd={add} />
 
-      {erro && <p className="erro">{erro}</p>}
+      {error && <p className="error">{error}</p>}
 
-      <Progresso assistidos={assistidos} total={videos.length} />
+      <WatchProgress watchedCount={watchedCount} total={videos.length} />
 
-      {tocando && <VideoPlayer youTubeId={tocando} onFechar={() => setTocando(null)} />}
+      {playingVideoId && (
+        <VideoPlayer youTubeId={playingVideoId} onClose={() => setPlayingVideoId(null)} />
+      )}
 
-      <ul className="lista">
+      <ul className="list">
         {videos.map((v) => (
-          <VideoCard key={v.id} video={v} onAssistir={setTocando} onAlternar={alternarAssistido} />
+          <VideoCard key={v.id} video={v} onPlay={setPlayingVideoId} onToggleWatched={toggleWatched} />
         ))}
       </ul>
 
-      {videos.length === 0 && !erro && (
-        <p className="vazio">Nenhum vídeo ainda... cole seu link aqui! 🐰</p>
+      {videos.length === 0 && !error && (
+        <p className="empty">Nenhum vídeo ainda... cole seu link aqui! 🐰</p>
       )}
     </main>
   );
