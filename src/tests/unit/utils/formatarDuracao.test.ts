@@ -1,6 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { formatarDuracao } from "./formatarDuracao";
-
+import { formatarDuracao } from "../../../utils/formatarDuracao";
 describe("formatarDuracao", () => {
   it("formata minutos e segundos", () => {
     expect(formatarDuracao("PT4M13S")).toBe("4:13");
