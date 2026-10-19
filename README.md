@@ -39,7 +39,7 @@ Este repositório contém **somente o frontend**. A aplicação se comunica com 
 
 ### 📦 Versões das dependências
 
-O Node.js não está fixado no `package.json`. O projeto requer Node.js 22.13 ou superior, sendo recomendada a versão 24 LTS.
+A versão do Node.js usada está em `.nvmrc`. O `package.json` declara `engines.node` como `^22.13.0 || ^24.0.0 || >=26.0.0` (exigência do Vitest 5 e do ESLint 10).
 
 A tabela abaixo diferencia as versões declaradas no `package.json` das versões resolvidas no `package-lock.json`.
 
