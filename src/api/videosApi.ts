@@ -1,6 +1,7 @@
 import type { Video } from "../types/Video";
 
-const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:5265/api/videos";
+// Perfil http do backend (StudyTube.Api/Properties/launchSettings.json).
+const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:5126/api/videos";
 
 async function handle<T>(res: Response): Promise<T> {
   if (!res.ok) {
