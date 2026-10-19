@@ -10,10 +10,12 @@ export function VideoForm({ onAdicionar }: Props) {
 
   async function enviar(e: FormEvent) {
     e.preventDefault();
+
     if (!validarLinkYoutube(url)) {
-        alert("Esse link não é do YouTube 🥺");
-  return;
-}
+      alert("Esse link não é do YouTube 🥺");
+      return;
+    }
+
     const deuCerto = await onAdicionar(url);
     if (deuCerto) setUrl("");
   }
