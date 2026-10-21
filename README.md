@@ -36,6 +36,7 @@ Este repositório contém **somente o frontend**. A aplicação se comunica com 
 | 🔍 ESLint | Análise estática do código |
 | 🪝 Husky | Execução de lint e testes antes dos commits |
 | 🌐 Fetch API | Comunicação HTTP com o backend |
+| 📱 Capacitor | Empacotamento do site como app Android (APK) |
 
 ### 📦 Versões das dependências
 
@@ -55,6 +56,9 @@ A tabela abaixo diferencia as versões declaradas no `package.json` das versões
 | typescript-eslint | `^8.69.0` | `8.71.2` |
 | @vitejs/plugin-react | `^6.1.1` | `6.1.2` |
 | Husky | `^9.1.7` | `9.1.7` |
+| @capacitor/core | `^8.5.3` | `8.5.3` |
+| @capacitor/android | `^8.5.3` | `8.5.3` |
+| @capacitor/cli | `^8.5.3` | `8.5.3` |
 
 ---
 
@@ -222,12 +226,57 @@ Durações no formato ISO 8601, como `PT4M13S`, também são aceitas.
 
 ---
 
+## 📱 App Android (APK)
+
+O site também pode virar um app Android com o [Capacitor](https://capacitorjs.com/). O app abre o mesmo frontend dentro do celular e conversa com a API hospedada na internet.
+
+### 📋 Pré-requisitos
+
+| Ferramenta | Versão |
+|---|---|
+| 🟩 Node.js | 22 ou mais nova (o projeto usa a do `.nvmrc`) |
+| ☕ JDK | **21** (o Android Studio já traz um, na pasta `jbr`) |
+| 🤖 Android Studio | Otter 2025.2.1 ou mais novo, com o Android SDK 36 |
+| 📲 Android | 7.0 (API 24) ou mais novo |
+
+### 🌐 URL da API no app
+
+O celular não enxerga o `localhost` do computador, então o app precisa da URL **pública e com HTTPS** da API. Ela entra no app na hora do build, pelo arquivo `.env.production.local` (esse arquivo não vai pro Git):
+
+```env
+VITE_API_URL=https://endereco-do-backend/api/videos
+```
+
+> ⚠️ Se a URL da API mudar, é preciso gerar o APK de novo.
+
+### 🛠️ Gerando o APK
+
+```bash
+npm run build
+npx cap sync android
+cd android
+gradlew.bat assembleDebug
+```
+
+O APK fica em `android/app/build/outputs/apk/debug/app-debug.apk`.
+
+> 💡 No Linux ou no macOS, use `./gradlew assembleDebug`. Também dá pra abrir o projeto no Android Studio com `npx cap open android` e usar **Build > Generate App Bundles or APKs > Generate APKs**.
+
+### 📲 Instalando no emulador ou no celular
+
+```bash
+adb install -r android/app/build/outputs/apk/debug/app-debug.apk
+```
+
+---
+
 ## 🗂️ Estrutura do projeto
 
 A organização do código separa a comunicação com a API, os componentes visuais, o estado da aplicação e as funções auxiliares.
 
 ```text
 studytube-frontend/
+├── android/                 # Projeto Android gerado pelo Capacitor
 ├── public/                  # Ícones e arquivos estáticos
 ├── src/
 │   ├── api/
@@ -243,6 +292,7 @@ studytube-frontend/
 │   ├── App.tsx               # Componente principal
 │   └── main.tsx              # Ponto de entrada da aplicação
 ├── .env.example             # Exemplo de configuração
+├── capacitor.config.ts      # Configuração do app Android
 ├── .husky/
 │   └── pre-commit           # Hook executado antes dos commits
 ├── index.html
@@ -329,6 +379,8 @@ O projeto utiliza `react-youtube` para incorporar o player de vídeo.
 
 O componente recebe o identificador do vídeo do YouTube (`youTubeId`), evitando a necessidade de passar a URL completa ao player.
 
+Abaixo do player sempre aparece o link **Abrir no YouTube ↗**. Se o player der erro (por exemplo, dentro do app Android), o componente mostra um aviso e o vídeo continua acessível pelo link.
+
 ### 4. Validação antes do envio
 
 Os links são validados no navegador para verificar se pertencem aos domínios aceitos, como `youtube.com` e `youtu.be`, antes de realizar a requisição `POST`.
@@ -342,6 +394,12 @@ O Vitest é utilizado para testar funções importantes, como a formatação da 
 ### 6. Verificação antes dos commits
 
 O Husky executa o lint e os testes automaticamente antes de cada commit, ajudando a evitar que código com erros de lint ou testes falhando seja registrado no repositório.
+
+### 7. App Android com Capacitor
+
+Em vez de criar outro app do zero, o próprio site React é empacotado num APK com o Capacitor. O app usa o mesmo código, os mesmos componentes e a mesma API.
+
+A pasta `android/` é gerada pelo Capacitor e fica no repositório, como a documentação dele recomenda. O ESLint ignora essa pasta, porque ela recebe uma cópia do build do site.
 ---
 
 ## 🗺️ Resumo da arquitetura
