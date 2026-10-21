@@ -1,0 +1,33 @@
+flowchart LR
+    U["🧍<br/><b>Usuário</b><br/>(estudante)"]
+    API["🧍<br/><b>StudyTube API</b><br/>(ator secundário)"]
+    YTP["🧍<br/><b>Player do YouTube</b><br/>(ator secundário)"]
+    subgraph SYS["Sistema StudyTube Web (frontend)"]
+        direction TB
+        UC1(["UC_001<br/>Adicionar videoaula"])
+        UC2(["UC_002<br/>Consultar lista de videoaulas"])
+        UC3(["UC_003<br/>Marcar videoaula como assistida"])
+        UC4(["UC_004<br/>Desmarcar videoaula como assistida"])
+        UC5(["UC_005<br/>Assistir videoaula na página"])
+        UC6(["UC_006<br/>Acompanhar progresso de estudos"])
+        UC7(["UC_007<br/>Validar link do YouTube"])
+    end
+    U --- UC1
+    U --- UC2
+    U --- UC3
+    U --- UC4
+    U --- UC5
+    U --- UC6
+    UC1 -. "&lt;&lt;include&gt;&gt;" .-> UC7
+    UC6 -. "&lt;&lt;include&gt;&gt;" .-> UC2
+    UC5 -. "&lt;&lt;extend&gt;&gt;" .-> UC2
+    UC1 --- API
+    UC2 --- API
+    UC3 --- API
+    UC4 --- API
+    UC5 --- YTP
+    classDef uc fill:#ffffff,stroke:#15324C,stroke-width:1.5px,color:#15324C;
+    classDef actor fill:#ffffff,stroke:#ffffff,color:#15324C;
+    class UC1,UC2,UC3,UC4,UC5,UC6,UC7 uc;
+    class U,API,YTP actor;
+    style SYS fill:#F4F8FA,stroke:#15324C,stroke-width:1px,color:#15324C

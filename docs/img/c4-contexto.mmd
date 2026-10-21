@@ -1,0 +1,14 @@
+flowchart TB
+    P["<b>Estudante</b><br/>[Pessoa]<br/>Monta a lista, assiste e marca videoaulas."]
+    FE["<b>StudyTube Web</b><br/>[Sistema de software — escopo deste documento]<br/>Aplicação React no navegador."]
+    API["<b>StudyTube API</b><br/>[Sistema de software]<br/>Repositório studytube-backend (.NET 10)."]
+    YTI["<b>YouTube IFrame Player</b><br/>[Sistema externo — Google]<br/>Reproduz o vídeo incorporado."]
+    YT["<b>YouTube Data API v3</b><br/>[Sistema externo — usado só pela API]"]
+    P -->|"Usa no navegador"| FE
+    FE -->|"HTTP/JSON (fetch)<br/>VITE_API_URL"| API
+    FE -->|"react-youtube (IFrame)"| YTI
+    API -->|"HTTPS"| YT
+    classDef person fill:#15324C,stroke:#0d2133,color:#ffffff;
+    classDef sys fill:#1F6F8B,stroke:#15324C,color:#ffffff;
+    classDef ext fill:#8A9BA8,stroke:#5c6b75,color:#ffffff;
+    class P person; class FE sys; class API,YTI,YT ext;

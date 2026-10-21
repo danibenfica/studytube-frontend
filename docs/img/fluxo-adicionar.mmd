@@ -1,0 +1,12 @@
+flowchart TD
+    A(["Usuário informa o link e solicita Adicionar"]) --> B{"Link é do YouTube?<br/>(isValidYouTubeUrl)"}
+    B -- "não" --> E1["Alerta: Esse link não é do YouTube 🥺<br/>(FE_02) — volta ao campo"]
+    B -- "sim" --> C["Sistema envia POST /api/videos"]
+    C --> D{"Resposta"}
+    D -- "falha de rede" --> E2["Mensagem do navegador<br/>(FE_05)"]
+    D -- "400 com error" --> E3["Mensagem da API<br/>(FE_03)"]
+    D -- "outro erro" --> E4["Algo deu errado 😢<br/>(FE_04)"]
+    D -- "201" --> F["Videoaula no topo da lista,<br/>campo limpo, progresso atualizado"]
+    classDef ok fill:#E6F5F2,stroke:#1F6F8B,color:#15324C;
+    classDef err fill:#FDECEA,stroke:#B03A2E,color:#5c1a14;
+    class A,F ok; class E1,E2,E3,E4 err;

@@ -1,0 +1,21 @@
+flowchart LR
+    subgraph PC["Computador do desenvolvedor"]
+        direction TB
+        BR["Navegador"]
+        VITE["Vite dev server (npm run dev)<br/>http://localhost:5173 (padrão do Vite)"]
+        ENV[".env (não versionado)<br/>VITE_API_URL=http://localhost:5126/api/videos"]
+        KES["StudyTube API<br/>http://localhost:5126"]
+        HUS["Husky pre-commit<br/>npm run lint + npm test"]
+    end
+    subgraph GH["GitHub"]
+        CI["GitHub Actions — CI<br/>ubuntu-latest + windows-latest<br/>npm ci → lint → Vitest → build"]
+    end
+    YTI["YouTube IFrame Player"]
+    BR --> VITE
+    ENV -. "lido no build/dev" .-> VITE
+    BR -->|"fetch"| KES
+    BR -->|"IFrame"| YTI
+    classDef n fill:#ffffff,stroke:#15324C,color:#15324C;
+    class BR,VITE,ENV,KES,HUS,CI,YTI n;
+    style PC fill:#F4F8FA,stroke:#15324C
+    style GH fill:#F4F8FA,stroke:#15324C

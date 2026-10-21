@@ -1,0 +1,20 @@
+flowchart LR
+    subgraph S1["1 · Organizar a lista"]
+        direction TB
+        A1["Abrir o StudyTube<br/>no navegador"] --> A2["Colar o link do YouTube<br/>e escolher Adicionar ✨"] --> A3["Ver a videoaula<br/>no topo da lista"]
+    end
+    subgraph S2["2 · Estudar"]
+        direction TB
+        B1["Escolher ▶ Assistir"] --> B2["Assistir no player<br/>da própria página"] --> B3["Fechar player ✖"]
+    end
+    subgraph S3["3 · Acompanhar"]
+        direction TB
+        C1["Escolher ✔ Já assisti"] --> C2["Ver X de Y assistidos 🌸"] --> C3["↩ Desmarcar,<br/>se marcou por engano"]
+    end
+    S1 --> S2 --> S3
+    classDef step fill:#ffffff,stroke:#1F6F8B,color:#15324C;
+    classDef err fill:#FDECEA,stroke:#B03A2E,color:#5c1a14;
+    class A1,A2,A3,B1,B2,B3,C1,C2,C3 step;
+    style S1 fill:#E6F5F2,stroke:#15324C,color:#15324C
+    style S2 fill:#E6F5F2,stroke:#15324C,color:#15324C
+    style S3 fill:#E6F5F2,stroke:#15324C,color:#15324C

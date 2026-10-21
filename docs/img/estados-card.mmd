@@ -1,0 +1,11 @@
+stateDiagram-v2
+    direction TB
+    [*] --> NaoAssistido: videoaula adicionada ou carregada com watched = false
+    NaoAssistido --> Assistido: "✔ Já assisti" → PATCH 200
+    Assistido --> NaoAssistido: "↩ Desmarcar" → DELETE 200
+    NaoAssistido: Card normal (classe "card")
+    Assistido: Card destacado (classe "card watched")
+    note right of Assistido
+        Falha da API em qualquer estado:
+        mensagem de erro exibida e o estado do card não muda
+    end note
